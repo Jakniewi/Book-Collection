@@ -10,6 +10,7 @@ import {
   Image, StyleSheet, Alert, ActivityIndicator,
   KeyboardAvoidingView, Platform,
 } from 'react-native';
+import { StatsScreen } from './src/views/StatsScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -29,7 +30,7 @@ export default function App() {
         {/* Uncomment as you build each screen: */}
         <Stack.Screen name="AddBook"    component={AddBookScreen} />
         <Stack.Screen name="BookDetail" component={BookDetailScreen} />
-       
+        <Stack.Screen name="Stats" component={StatsScreen} />
       </Stack.Navigator>
     </NavigationContainer>
     </View>

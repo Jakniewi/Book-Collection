@@ -5,11 +5,11 @@ import {
   KeyboardAvoidingView, Platform,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import { createBook, validateBook, GENRES } from '../models/Book';
+import { createBook, validateBook, GENRES, READING_STATUSES } from '../models/Book';
 import { useBookList } from '../viewmodels/useBookList';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-// ── MOVE FIELD COMPONENT OUTSIDE THE SCREEN COMPONENT ──────────────────────
+
 const Field = ({ label, error, children }) => (
   <View style={styles.fieldGroup}>
     <Text style={styles.label}>{label}</Text>
@@ -18,12 +18,7 @@ const Field = ({ label, error, children }) => (
   </View>
 );
 
-/**
- * AddBookScreen
- * Props: navigation (react-navigation)
- * Calls navigation.goBack() on save, passing the new book via route params
- * is handled by the parent — or you can wire add() from useBookList here.
- */
+
 export function AddBookScreen({ navigation, route }) {
   const { addBook } = useBookList();
 
@@ -36,6 +31,7 @@ export function AddBookScreen({ navigation, route }) {
   const [coverImage, setCoverImage] = useState(null);
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
+  const [readingStatus, setReadingStatus] = useState('Want to Read');
 
   // ── Image picker ─────────────────────────────────────────────────────────────
   const requestPermission = async (type) => {
@@ -91,6 +87,7 @@ export function AddBookScreen({ navigation, route }) {
       title: title.trim(),
       author: author.trim(),
       genre,
+      readingStatus,
       dateRead: dateRead ? new Date(dateRead).toISOString() : null,
       score: score !== '' ? Number(score) : null,
       notes: notes.trim(),
@@ -217,6 +214,32 @@ export function AddBookScreen({ navigation, route }) {
               </ScrollView>
             </Field>
 
+            {/* Reading Status - Now styled like score buttons */}
+            <Field label="Reading Status">
+              <View style={styles.statusRow}>
+                {READING_STATUSES.map((status) => (
+                  <TouchableOpacity
+                    key={status}
+                    style={[
+                      styles.statusBtn,
+                      readingStatus === status && styles.statusBtnActive
+                    ]}
+                    onPress={() => setReadingStatus(status)}
+                    accessibilityRole="radio"
+                    accessibilityState={{ checked: readingStatus === status }}
+                    accessibilityLabel={status}
+                  >
+                    <Text style={[
+                      styles.statusBtnText,
+                      readingStatus === status && styles.statusBtnTextActive
+                    ]}>
+                      {status}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </Field>
+
             {/* Score */}
             <Field label="Score (1–10)" error={errors.score}>
               <View style={styles.scoreRow}>
@@ -283,7 +306,7 @@ const styles = StyleSheet.create({
   
   // TOP SPACER - Adds padding above the header
   topSpacer: {
-    height: 10, // Adjust this value to control the space at the very top
+    height: 10,
     backgroundColor: '#13131f',
   },
   
@@ -292,6 +315,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
+    paddingVertical: 20,
     borderBottomWidth: 1,
     borderBottomColor: '#1e1e2e',
   },
@@ -323,6 +347,7 @@ const styles = StyleSheet.create({
   },
 
   form: {
+    paddingTop: 20,
     paddingHorizontal: 16,
     paddingBottom: 40,
   },
@@ -421,6 +446,36 @@ const styles = StyleSheet.create({
     color: '#13131f',
     fontWeight: '700',
   },
+  // Reading Status styles - matches score button style
+  statusRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  statusBtn: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 19,
+    backgroundColor: '#1e1e2e',
+    borderWidth: 1,
+    borderColor: '#2a2a3e',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  statusBtnActive: {
+    backgroundColor: '#b388ff',
+    borderColor: '#b388ff',
+  },
+  statusBtnText: {
+    color: '#888',
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  statusBtnTextActive: {
+    color: '#13131f',
+    fontWeight: '800',
+  },
+  // Score styles
   scoreRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',

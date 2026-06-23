@@ -5,7 +5,7 @@ import {
   KeyboardAvoidingView, Platform,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import { validateBook, GENRES } from '../models/Book';
+import { validateBook, GENRES, READING_STATUSES } from '../models/Book';
 import { updateBook, deleteBook } from '../storage/bookStorage';
 
 const SCORE_COLOR = (score) => {
@@ -15,7 +15,17 @@ const SCORE_COLOR = (score) => {
   return '#f44336';
 };
 
-// ── MOVE FIELD COMPONENT OUTSIDE THE SCREEN COMPONENT ──────────────────────
+const getStatusColor = (status) => {
+  switch (status) {
+    case 'Want to Read': return '#ff9800';
+    case 'Currently Reading': return '#4caf50';
+    case 'Finished': return '#2196f3';
+    case 'Dropped': return '#f44336';
+    default: return '#888';
+  }
+};
+
+
 const Field = ({ label, error, children }) => (
   <View style={styles.fieldGroup}>
     <Text style={styles.fieldLabel}>{label}</Text>
@@ -24,10 +34,7 @@ const Field = ({ label, error, children }) => (
   </View>
 );
 
-/**
- * BookDetailScreen
- * route.params: { book }
- */
+
 export function BookDetailScreen({ navigation, route }) {
   const { book: initial } = route.params;
 
@@ -39,6 +46,7 @@ export function BookDetailScreen({ navigation, route }) {
   const [title, setTitle] = useState(initial.title);
   const [author, setAuthor] = useState(initial.author);
   const [genre, setGenre] = useState(initial.genre);
+  const [readingStatus, setReadingStatus] = useState(initial.readingStatus || 'Want to Read');
   const [dateRead, setDateRead] = useState(
     initial.dateRead ? initial.dateRead.slice(0, 10) : ''
   );
@@ -92,6 +100,7 @@ export function BookDetailScreen({ navigation, route }) {
       title: title.trim(),
       author: author.trim(),
       genre,
+      readingStatus,
       dateRead: dateRead ? new Date(dateRead).toISOString() : null,
       score: score !== '' ? Number(score) : null,
       notes: notes.trim(),
@@ -121,6 +130,7 @@ export function BookDetailScreen({ navigation, route }) {
     setTitle(initial.title);
     setAuthor(initial.author);
     setGenre(initial.genre);
+    setReadingStatus(initial.readingStatus || 'Want to Read');
     setDateRead(initial.dateRead ? initial.dateRead.slice(0, 10) : '');
     setScore(initial.score !== null ? String(initial.score) : '');
     setNotes(initial.notes);
@@ -180,6 +190,11 @@ export function BookDetailScreen({ navigation, route }) {
                   <Text style={styles.genrePillText}>{genre}</Text>
                 </View>
               ) : null}
+              {readingStatus && (
+                <View style={[styles.statusPill, { backgroundColor: getStatusColor(readingStatus) }]}>
+                  <Text style={styles.statusPillText}>{readingStatus}</Text>
+                </View>
+              )}
               {score !== '' ? (
                 <View style={[styles.scoreBadge, { backgroundColor: SCORE_COLOR(Number(score)) }]}>
                   <Text style={styles.scoreBadgeText}>{score}</Text>
@@ -273,6 +288,32 @@ export function BookDetailScreen({ navigation, route }) {
                 </TouchableOpacity>
               ))}
             </ScrollView>
+          </Field>
+
+          {/* Reading Status - Now styled like score buttons */}
+          <Field label="Reading Status">
+            <View style={styles.statusRow}>
+              {READING_STATUSES.map((status) => (
+                <TouchableOpacity
+                  key={status}
+                  style={[
+                    styles.statusBtn,
+                    readingStatus === status && styles.statusBtnActive
+                  ]}
+                  onPress={() => setReadingStatus(status)}
+                  accessibilityRole="radio"
+                  accessibilityState={{ checked: readingStatus === status }}
+                  accessibilityLabel={status}
+                >
+                  <Text style={[
+                    styles.statusBtnText,
+                    readingStatus === status && styles.statusBtnTextActive
+                  ]}>
+                    {status}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
           </Field>
 
           <Field label="Score (1–10)" error={errors.score}>
@@ -383,7 +424,7 @@ const styles = StyleSheet.create({
   
   // TOP SPACER - Adds padding above the header
   topSpacer: {
-    height: 30, // Adjust this value to control the space at the very top
+    height: 30,
     backgroundColor: '#13131f',
   },
   
@@ -478,6 +519,16 @@ const styles = StyleSheet.create({
   },
   genrePillText: {
     color: '#b388ff',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  statusPill: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 20,
+  },
+  statusPillText: {
+    color: '#fff',
     fontSize: 12,
     fontWeight: '600',
   },
@@ -590,6 +641,38 @@ const styles = StyleSheet.create({
   genreChipActive: { backgroundColor: '#b388ff', borderColor: '#b388ff' },
   genreChipText: { color: '#888', fontSize: 13 },
   genreChipTextActive: { color: '#13131f', fontWeight: '700' },
+  
+  // Reading Status styles - matches score button style
+  statusRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  statusBtn: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 19,
+    backgroundColor: '#1e1e2e',
+    borderWidth: 1,
+    borderColor: '#2a2a3e',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  statusBtnActive: {
+    backgroundColor: '#b388ff',
+    borderColor: '#b388ff',
+  },
+  statusBtnText: {
+    color: '#888',
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  statusBtnTextActive: {
+    color: '#13131f',
+    fontWeight: '800',
+  },
+  
+  // Score styles
   scoreRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   scoreBtn: {
     width: 38,
@@ -604,6 +687,7 @@ const styles = StyleSheet.create({
   scoreBtnActive: { backgroundColor: '#b388ff', borderColor: '#b388ff' },
   scoreBtnText: { color: '#888', fontSize: 13, fontWeight: '600' },
   scoreBtnTextActive: { color: '#13131f', fontWeight: '800' },
+  
   deleteBtn: {
     marginTop: 12,
     borderWidth: 1,

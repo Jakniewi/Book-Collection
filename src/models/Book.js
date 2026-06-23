@@ -1,6 +1,14 @@
 import 'react-native-get-random-values';
 import { v4 as uuidv4 } from 'uuid';
 
+// Add this constant for reading statuses
+export const READING_STATUSES = [
+  'Want to Read',
+  'Currently Reading',
+  'Finished',
+  'Dropped', // Did Not Finish
+];
+
 /**
  * Creates a new Book object with defaults.
  * @param {Partial<Book>} fields
@@ -12,6 +20,7 @@ export function createBook(fields = {}) {
     title: fields.title ?? '',
     author: fields.author ?? '',
     genre: fields.genre ?? '',
+    readingStatus: fields.readingStatus ?? 'Want to Read', // New field
     dateRead: fields.dateRead ?? null,       // ISO string or null
     score: fields.score ?? null,             // 1–10 or null
     coverImage: fields.coverImage ?? null,   // local file URI or null
@@ -55,11 +64,14 @@ export const GENRES = [
 ];
 
 export const SORT_OPTIONS = [
-  { label: 'Title (A–Z)',     key: 'title',     dir: 'asc'  },
-  { label: 'Title (Z–A)',     key: 'title',     dir: 'desc' },
-  { label: 'Score (high)',    key: 'score',     dir: 'desc' },
-  { label: 'Score (low)',     key: 'score',     dir: 'asc'  },
-  { label: 'Date (newest)',   key: 'dateRead',  dir: 'desc' },
-  { label: 'Date (oldest)',   key: 'dateRead',  dir: 'asc'  },
-  { label: 'Recently added', key: 'createdAt', dir: 'desc' },
+  { label: 'Title (A–Z)',          key: 'title',         dir: 'asc'  },
+  { label: 'Title (Z–A)',          key: 'title',         dir: 'desc' },
+  { label: 'Score (high)',         key: 'score',         dir: 'desc' },
+  { label: 'Score (low)',          key: 'score',         dir: 'asc'  },
+  { label: 'Genre (A–Z)',          key: 'genre',         dir: 'asc'  },
+  { label: 'Genre (Z–A)',          key: 'genre',         dir: 'desc' },
+  { label: 'Reading Status',       key: 'readingStatus', dir: 'asc'  }, // New
+  { label: 'Date (newest)',        key: 'dateRead',      dir: 'desc' },
+  { label: 'Date (oldest)',        key: 'dateRead',      dir: 'asc'  },
+  { label: 'Recently added',       key: 'createdAt',     dir: 'desc' },
 ];
